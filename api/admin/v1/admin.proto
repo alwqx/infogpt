@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package admin.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "infogpt/api/admin/v1;v1";
+option java_multiple_files = true;
+option java_package = "dev.kratos.api.admin.v1";
+option java_outer_classname = "AdminProtoV1";
+
+// The greeting service definition.
+service Admin {
+  // Sends a greeting
+  rpc HealthCheck (HealthRequest) returns (HealthReply) {
+    option (google.api.http) = {
+      get: "/v1/health"
+    };
+  }
+
+  // Sends appinfo
+  rpc AppInfo (AppInfoRequest) returns (AppInfoReply) {
+    option (google.api.http) = {
+      get: "/v1/appinfo"
+    };
+  }
+
+  // proxy chat to openai
+  rpc OpenaiChat (OpenaiChatReuqest) returns (OpenaiChatReply) {
+    option (google.api.http) = {
+      post: "/v1/chat"
+      body:"*"
+    };
+  }
+}
+
+// The request message containing the user's name.
+message HealthRequest {}
+
+// The response message containing the greetings
+message HealthReply {
+  string message = 1;
+}
+
+message AppInfoRequest{}
+message AppInfoReply{
+    string version = 1;
+}
+
+message OpenaiChatReuqest{
+    string message = 1;
+}
+message OpenaiChatReply{
+    string message = 1;
+}
