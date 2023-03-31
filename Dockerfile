@@ -17,8 +17,8 @@ COPY --from=builder /src/bin /app
 
 WORKDIR /app
 
-EXPOSE 8000
-EXPOSE 9000
+EXPOSE 6060
+EXPOSE 6061
 VOLUME /data/conf
 
 CMD ["./infogpt", "-conf", "/data/conf"]

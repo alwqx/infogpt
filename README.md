@@ -1,5 +1,9 @@
 # Kratos Project Template For InfoGPT
 
+## 快速部署
+
+参考 [deploy](docs/deploy.md)
+
 ## Install Kratos
 
 ```
@@ -51,10 +55,10 @@ wire
 
 ```bash
 # build
-docker build -t <your-docker-image-name> .
+docker build -t infogpt .
 
 # run
-docker run --rm -p 8000:8000 -p 9000:9000 -v </path/to/your/configs>:/data/conf <your-docker-image-name>
+docker run -d --name infogpt --rm -p 6060:6060 -p 6061:6061 -v </path/to/your/configs>:/data/conf infogpt
 ```
 
 ## TODOs
