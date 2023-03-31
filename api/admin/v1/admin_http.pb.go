@@ -20,16 +20,22 @@ var _ = binding.EncodeURL
 const _ = http.SupportPackageIsVersion1
 
 const OperationAdminAppInfo = "/admin.v1.Admin/AppInfo"
+const OperationAdminBookSummary = "/admin.v1.Admin/BookSummary"
 const OperationAdminHealthCheck = "/admin.v1.Admin/HealthCheck"
 const OperationAdminOpenaiChat = "/admin.v1.Admin/OpenaiChat"
+const OperationAdminUrlSummary = "/admin.v1.Admin/UrlSummary"
 
 type AdminHTTPServer interface {
 	// AppInfo Sends appinfo
 	AppInfo(context.Context, *AppInfoRequest) (*AppInfoReply, error)
+	// BookSummary book summary using openai
+	BookSummary(context.Context, *SummaryReuqest) (*SummaryReply, error)
 	// HealthCheck Sends a greeting
 	HealthCheck(context.Context, *HealthRequest) (*HealthReply, error)
 	// OpenaiChat proxy chat to openai
 	OpenaiChat(context.Context, *OpenaiChatReuqest) (*OpenaiChatReply, error)
+	// UrlSummary url summary using openai
+	UrlSummary(context.Context, *SummaryReuqest) (*SummaryReply, error)
 }
 
 func RegisterAdminHTTPServer(s *http.Server, srv AdminHTTPServer) {
@@ -37,6 +43,8 @@ func RegisterAdminHTTPServer(s *http.Server, srv AdminHTTPServer) {
 	r.GET("/v1/health", _Admin_HealthCheck0_HTTP_Handler(srv))
 	r.GET("/v1/appinfo", _Admin_AppInfo0_HTTP_Handler(srv))
 	r.POST("/v1/chat", _Admin_OpenaiChat0_HTTP_Handler(srv))
+	r.POST("/v1/summary/url", _Admin_UrlSummary0_HTTP_Handler(srv))
+	r.POST("/v1/summary/book", _Admin_BookSummary0_HTTP_Handler(srv))
 }
 
 func _Admin_HealthCheck0_HTTP_Handler(srv AdminHTTPServer) func(ctx http.Context) error {
@@ -96,10 +104,50 @@ func _Admin_OpenaiChat0_HTTP_Handler(srv AdminHTTPServer) func(ctx http.Context)
 	}
 }
 
+func _Admin_UrlSummary0_HTTP_Handler(srv AdminHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SummaryReuqest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAdminUrlSummary)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UrlSummary(ctx, req.(*SummaryReuqest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SummaryReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Admin_BookSummary0_HTTP_Handler(srv AdminHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SummaryReuqest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAdminBookSummary)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.BookSummary(ctx, req.(*SummaryReuqest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SummaryReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type AdminHTTPClient interface {
 	AppInfo(ctx context.Context, req *AppInfoRequest, opts ...http.CallOption) (rsp *AppInfoReply, err error)
+	BookSummary(ctx context.Context, req *SummaryReuqest, opts ...http.CallOption) (rsp *SummaryReply, err error)
 	HealthCheck(ctx context.Context, req *HealthRequest, opts ...http.CallOption) (rsp *HealthReply, err error)
 	OpenaiChat(ctx context.Context, req *OpenaiChatReuqest, opts ...http.CallOption) (rsp *OpenaiChatReply, err error)
+	UrlSummary(ctx context.Context, req *SummaryReuqest, opts ...http.CallOption) (rsp *SummaryReply, err error)
 }
 
 type AdminHTTPClientImpl struct {
@@ -117,6 +165,19 @@ func (c *AdminHTTPClientImpl) AppInfo(ctx context.Context, in *AppInfoRequest, o
 	opts = append(opts, http.Operation(OperationAdminAppInfo))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *AdminHTTPClientImpl) BookSummary(ctx context.Context, in *SummaryReuqest, opts ...http.CallOption) (*SummaryReply, error) {
+	var out SummaryReply
+	pattern := "/v1/summary/book"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAdminBookSummary))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -141,6 +202,19 @@ func (c *AdminHTTPClientImpl) OpenaiChat(ctx context.Context, in *OpenaiChatReuq
 	pattern := "/v1/chat"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationAdminOpenaiChat))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *AdminHTTPClientImpl) UrlSummary(ctx context.Context, in *SummaryReuqest, opts ...http.CallOption) (*SummaryReply, error) {
+	var out SummaryReply
+	pattern := "/v1/summary/url"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAdminUrlSummary))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

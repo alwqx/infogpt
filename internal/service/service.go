@@ -2,12 +2,13 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/url"
-	"time"
 
 	pb "infogpt/api/admin/v1"
 	"infogpt/internal/conf"
+	lib "infogpt/library"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
@@ -42,7 +43,6 @@ func NewAdminService(openaiConf *conf.Openai, logger log.Logger) (*AdminService,
 		}
 		openAIConfig.HTTPClient = &http.Client{
 			Transport: transport,
-			Timeout:   15 * time.Second,
 		}
 	}
 	oc := openai.NewClientWithConfig(openAIConfig)
@@ -87,5 +87,63 @@ func (s *AdminService) OpenaiChat(ctx context.Context, req *pb.OpenaiChatReuqest
 	reply := &pb.OpenaiChatReply{
 		Message: resp.Choices[0].Message.Content,
 	}
+	return reply, nil
+}
+
+// UrlSummary 抓取 url 内容，调用OpenAI的模型生成内容摘要
+func (s *AdminService) UrlSummary(ctx context.Context, req *pb.SummaryReuqest) (*pb.SummaryReply, error) {
+	// 检查url
+	_, err := url.Parse(req.PromptDetail)
+	if err != nil {
+		return nil, err
+	}
+
+	chatCnt := fmt.Sprintf("%s %s", lib.UrlSummaryPromptCN, req.PromptDetail)
+	log.Infof("[AdminService][UrlSummary] prompt is %s", chatCnt)
+	chatReq := openai.ChatCompletionRequest{
+		Model: openai.GPT3Dot5Turbo,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: chatCnt,
+			},
+		},
+	}
+
+	resp, err := s.OpenAIClient.CreateChatCompletion(ctx, chatReq)
+	if err != nil {
+		log.Errorf("chat with openai error: %v", err)
+		return nil, err
+	}
+	reply := &pb.SummaryReply{
+		Summary: resp.Choices[0].Message.Content,
+	}
+
+	return reply, nil
+}
+
+// BookSummary 根据书名，调用OpenAI的模型生成内容摘要
+func (s *AdminService) BookSummary(ctx context.Context, req *pb.SummaryReuqest) (*pb.SummaryReply, error) {
+	chatCnt := fmt.Sprintf("%s %s", lib.BookSummaryPromptCN, req.PromptDetail)
+	log.Infof("[AdminService][BookSummary] prompt is %s", chatCnt)
+	chatReq := openai.ChatCompletionRequest{
+		Model: openai.GPT3Dot5Turbo,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: chatCnt,
+			},
+		},
+	}
+
+	resp, err := s.OpenAIClient.CreateChatCompletion(ctx, chatReq)
+	if err != nil {
+		log.Errorf("chat with openai error: %v", err)
+		return nil, err
+	}
+	reply := &pb.SummaryReply{
+		Summary: resp.Choices[0].Message.Content,
+	}
+
 	return reply, nil
 }

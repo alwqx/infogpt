@@ -52,6 +52,44 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/admin.v1.HealthReply'
+    /v1/summary/book:
+        post:
+            tags:
+                - Admin
+            description: book summary using openai
+            operationId: Admin_BookSummary
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.SummaryReuqest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.SummaryReply'
+    /v1/summary/url:
+        post:
+            tags:
+                - Admin
+            description: url summary using openai
+            operationId: Admin_UrlSummary
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.SummaryReuqest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.SummaryReply'
 components:
     schemas:
         admin.v1.AppInfoReply:
@@ -74,6 +112,16 @@ components:
             type: object
             properties:
                 message:
+                    type: string
+        admin.v1.SummaryReply:
+            type: object
+            properties:
+                summary:
+                    type: string
+        admin.v1.SummaryReuqest:
+            type: object
+            properties:
+                promptDetail:
                     type: string
 tags:
     - name: Admin

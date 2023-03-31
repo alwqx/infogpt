@@ -32,6 +32,22 @@ service Admin {
       body:"*"
     };
   }
+
+  // url summary using openai
+  rpc UrlSummary (SummaryReuqest) returns (SummaryReply) {
+    option (google.api.http) = {
+      post: "/v1/summary/url"
+      body:"*"
+    };
+  }
+
+  // book summary using openai
+  rpc BookSummary (SummaryReuqest) returns (SummaryReply) {
+    option (google.api.http) = {
+      post: "/v1/summary/book"
+      body:"*"
+    };
+  }
 }
 
 // The request message containing the user's name.
@@ -52,4 +68,11 @@ message OpenaiChatReuqest{
 }
 message OpenaiChatReply{
     string message = 1;
+}
+
+message SummaryReuqest{
+  string prompt_detail = 1;
+}
+message SummaryReply{
+  string summary = 1;
 }
