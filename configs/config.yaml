@@ -1,9 +1,9 @@
 server:
   http:
     addr: 0.0.0.0:6060
-    timeout: 15s
-    proxy_url: ""
-    proxy_timeout: 15s
+    timeout: 300s
+    proxy_url: "http://127.0.0.1:1082"
+    proxy_timeout: 300s
   grpc:
     addr: 0.0.0.0:6061
     timeout: 2s
@@ -16,5 +16,5 @@ data:
     read_timeout: 0.2s
     write_timeout: 0.2s
 openai:
-  api_key: ""
-  proxy_url: ""
+  api_key: "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"
+  proxy_url: "http://127.0.0.1:1082"

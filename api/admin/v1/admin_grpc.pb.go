@@ -22,6 +22,8 @@ const (
 	Admin_HealthCheck_FullMethodName = "/admin.v1.Admin/HealthCheck"
 	Admin_AppInfo_FullMethodName     = "/admin.v1.Admin/AppInfo"
 	Admin_OpenaiChat_FullMethodName  = "/admin.v1.Admin/OpenaiChat"
+	Admin_UrlSummary_FullMethodName  = "/admin.v1.Admin/UrlSummary"
+	Admin_BookSummary_FullMethodName = "/admin.v1.Admin/BookSummary"
 )
 
 // AdminClient is the client API for Admin service.
@@ -34,6 +36,10 @@ type AdminClient interface {
 	AppInfo(ctx context.Context, in *AppInfoRequest, opts ...grpc.CallOption) (*AppInfoReply, error)
 	// proxy chat to openai
 	OpenaiChat(ctx context.Context, in *OpenaiChatReuqest, opts ...grpc.CallOption) (*OpenaiChatReply, error)
+	// url summary using openai
+	UrlSummary(ctx context.Context, in *SummaryReuqest, opts ...grpc.CallOption) (*SummaryReply, error)
+	// book summary using openai
+	BookSummary(ctx context.Context, in *SummaryReuqest, opts ...grpc.CallOption) (*SummaryReply, error)
 }
 
 type adminClient struct {
@@ -71,6 +77,24 @@ func (c *adminClient) OpenaiChat(ctx context.Context, in *OpenaiChatReuqest, opt
 	return out, nil
 }
 
+func (c *adminClient) UrlSummary(ctx context.Context, in *SummaryReuqest, opts ...grpc.CallOption) (*SummaryReply, error) {
+	out := new(SummaryReply)
+	err := c.cc.Invoke(ctx, Admin_UrlSummary_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminClient) BookSummary(ctx context.Context, in *SummaryReuqest, opts ...grpc.CallOption) (*SummaryReply, error) {
+	out := new(SummaryReply)
+	err := c.cc.Invoke(ctx, Admin_BookSummary_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServer is the server API for Admin service.
 // All implementations must embed UnimplementedAdminServer
 // for forward compatibility
@@ -81,6 +105,10 @@ type AdminServer interface {
 	AppInfo(context.Context, *AppInfoRequest) (*AppInfoReply, error)
 	// proxy chat to openai
 	OpenaiChat(context.Context, *OpenaiChatReuqest) (*OpenaiChatReply, error)
+	// url summary using openai
+	UrlSummary(context.Context, *SummaryReuqest) (*SummaryReply, error)
+	// book summary using openai
+	BookSummary(context.Context, *SummaryReuqest) (*SummaryReply, error)
 	mustEmbedUnimplementedAdminServer()
 }
 
@@ -96,6 +124,12 @@ func (UnimplementedAdminServer) AppInfo(context.Context, *AppInfoRequest) (*AppI
 }
 func (UnimplementedAdminServer) OpenaiChat(context.Context, *OpenaiChatReuqest) (*OpenaiChatReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method OpenaiChat not implemented")
+}
+func (UnimplementedAdminServer) UrlSummary(context.Context, *SummaryReuqest) (*SummaryReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UrlSummary not implemented")
+}
+func (UnimplementedAdminServer) BookSummary(context.Context, *SummaryReuqest) (*SummaryReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BookSummary not implemented")
 }
 func (UnimplementedAdminServer) mustEmbedUnimplementedAdminServer() {}
 
@@ -164,6 +198,42 @@ func _Admin_OpenaiChat_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Admin_UrlSummary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SummaryReuqest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServer).UrlSummary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Admin_UrlSummary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServer).UrlSummary(ctx, req.(*SummaryReuqest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Admin_BookSummary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SummaryReuqest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServer).BookSummary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Admin_BookSummary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServer).BookSummary(ctx, req.(*SummaryReuqest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Admin_ServiceDesc is the grpc.ServiceDesc for Admin service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -182,6 +252,14 @@ var Admin_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "OpenaiChat",
 			Handler:    _Admin_OpenaiChat_Handler,
+		},
+		{
+			MethodName: "UrlSummary",
+			Handler:    _Admin_UrlSummary_Handler,
+		},
+		{
+			MethodName: "BookSummary",
+			Handler:    _Admin_BookSummary_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
