@@ -1,0 +1,79 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: Admin API
+    description: The greeting service definition.
+    version: 0.0.1
+paths:
+    /v1/appinfo:
+        get:
+            tags:
+                - Admin
+            description: Sends appinfo
+            operationId: Admin_AppInfo
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.AppInfoReply'
+    /v1/chat:
+        post:
+            tags:
+                - Admin
+            description: proxy chat to openai
+            operationId: Admin_OpenaiChat
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.OpenaiChatReuqest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.OpenaiChatReply'
+    /v1/health:
+        get:
+            tags:
+                - Admin
+            description: Sends a greeting
+            operationId: Admin_HealthCheck
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.HealthReply'
+components:
+    schemas:
+        admin.v1.AppInfoReply:
+            type: object
+            properties:
+                version:
+                    type: string
+        admin.v1.HealthReply:
+            type: object
+            properties:
+                message:
+                    type: string
+            description: The response message containing the greetings
+        admin.v1.OpenaiChatReply:
+            type: object
+            properties:
+                message:
+                    type: string
+        admin.v1.OpenaiChatReuqest:
+            type: object
+            properties:
+                message:
+                    type: string
+tags:
+    - name: Admin
