@@ -1,11 +1,11 @@
 server:
   http:
-    addr: 0.0.0.0:8000
+    addr: 0.0.0.0:6060
     timeout: 15s
-    proxy_url: "http://127.0.0.1:1082"
+    proxy_url: ""
     proxy_timeout: 15s
   grpc:
-    addr: 0.0.0.0:9000
+    addr: 0.0.0.0:6061
     timeout: 2s
 data:
   database:
