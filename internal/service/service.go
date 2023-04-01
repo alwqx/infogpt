@@ -11,6 +11,7 @@ import (
 	lib "infogpt/library"
 
 	"github.com/go-kratos/kratos/v2/log"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/google/wire"
 	openai "github.com/sashabaranov/go-openai"
 )
@@ -25,17 +26,19 @@ type AdminService struct {
 
 	OpenAIApiKey string
 	OpenAIClient *openai.Client
+
+	TelegramBot *tgbotapi.BotAPI
 }
 
-func NewAdminService(openaiConf *conf.Openai, logger log.Logger) (*AdminService, error) {
+func NewAdminService(adminConf *conf.Admin, logger log.Logger) (*AdminService, error) {
 	l := log.NewHelper(log.With(logger, "module", "service/admin"))
 
 	// openai client
-	openAIConfig := openai.DefaultConfig(openaiConf.ApiKey)
-	if openaiConf.ProxyUrl != "" {
-		proxyUrl, err := url.Parse(openaiConf.ProxyUrl)
+	openAIConfig := openai.DefaultConfig(adminConf.ApiKey)
+	if adminConf.ProxyUrl != "" {
+		proxyUrl, err := url.Parse(adminConf.ProxyUrl)
 		if err != nil {
-			log.Error("parse proxy_url %s error: %v", openaiConf.ProxyUrl, err)
+			log.Error("parse proxy_url %s error: %v", adminConf.ProxyUrl, err)
 			return nil, err
 		}
 		transport := &http.Transport{
@@ -46,11 +49,17 @@ func NewAdminService(openaiConf *conf.Openai, logger log.Logger) (*AdminService,
 		}
 	}
 	oc := openai.NewClientWithConfig(openAIConfig)
+
 	svc := &AdminService{
 		log:          l,
-		OpenAIApiKey: openaiConf.ApiKey,
+		OpenAIApiKey: adminConf.ApiKey,
 		OpenAIClient: oc,
+		TelegramBot:  NewTelegramBot(adminConf.TelegramToken, adminConf.ProxyUrl),
 	}
+
+	// 开始异步处理 telegram command
+	svc.AsyncProcessTelegramCommand()
+
 	return svc, nil
 }
 

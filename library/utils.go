@@ -3,6 +3,7 @@ package library
 import (
 	"encoding/json"
 	"log"
+	"net/url"
 )
 
 func PrintJson(title string, v interface{}) {
@@ -12,4 +13,10 @@ func PrintJson(title string, v interface{}) {
 		return
 	}
 	log.Printf("[PrintJson][%s] %s\n", title, string(b))
+}
+
+// CheckUrl 检查url链接是否正常
+func CheckUrl(urlStr string) error {
+	_, err := url.Parse(urlStr)
+	return err
 }

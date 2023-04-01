@@ -15,6 +15,7 @@ data:
     addr: 127.0.0.1:6379
     read_timeout: 0.2s
     write_timeout: 0.2s
-openai:
-  api_key: "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"
-  proxy_url: "http://127.0.0.1:1082"
+admin:
+  api_key: ""
+  proxy_url: ""
+  telegram_token: ""

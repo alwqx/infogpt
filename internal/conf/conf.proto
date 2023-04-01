@@ -8,7 +8,7 @@ import "google/protobuf/duration.proto";
 message Bootstrap {
   Server server = 1;
   Data data = 2;
-  Openai openai = 3;
+  Admin admin = 3;
 }
 
 message Server {
@@ -43,7 +43,8 @@ message Data {
   Redis redis = 2;
 }
 
-message Openai {
+message Admin {
   string api_key = 1;
   string proxy_url = 2;
+  string telegram_token = 3;
 }
