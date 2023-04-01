@@ -1,5 +1,9 @@
 # InfoGPT changelog
 
+### v0.0.4
+
+1. 集成 telegram bot
+
 ### v0.0.3
 
 1. 根据网址总结内容
