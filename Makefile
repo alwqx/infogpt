@@ -81,3 +81,10 @@ help:
 	{ lastLine = $$0 }' $(MAKEFILE_LIST)
 
 .DEFAULT_GOAL := help
+
+dev:build
+	./bin/infogpt -conf ~/.kconfigs/infogpt
+
+clean-docker:
+	docker stop infogpt
+	docker rm infogpt

@@ -21,8 +21,11 @@ var ProviderSet = wire.NewSet(NewAdminService)
 
 type AdminService struct {
 	pb.UnimplementedAdminServer
-
 	log *log.Helper
+
+	// 暴露出来，给上层http层使用
+	ProxyHttpClient *http.Client
+	AdminConf       *conf.Admin
 
 	OpenAIApiKey string
 	OpenAIClient *openai.Client
@@ -32,9 +35,15 @@ type AdminService struct {
 
 func NewAdminService(adminConf *conf.Admin, logger log.Logger) (*AdminService, error) {
 	l := log.NewHelper(log.With(logger, "module", "service/admin"))
+	svc := &AdminService{
+		log:          l,
+		OpenAIApiKey: adminConf.OpenaiApiKey,
+		AdminConf:    adminConf,
+		TelegramBot:  NewTelegramBot(adminConf.TelegramToken, adminConf.ProxyUrl),
+	}
 
 	// openai client
-	openAIConfig := openai.DefaultConfig(adminConf.ApiKey)
+	openAIConfig := openai.DefaultConfig(adminConf.OpenaiApiKey)
 	if adminConf.ProxyUrl != "" {
 		proxyUrl, err := url.Parse(adminConf.ProxyUrl)
 		if err != nil {
@@ -44,18 +53,15 @@ func NewAdminService(adminConf *conf.Admin, logger log.Logger) (*AdminService, e
 		transport := &http.Transport{
 			Proxy: http.ProxyURL(proxyUrl),
 		}
-		openAIConfig.HTTPClient = &http.Client{
+		svc.ProxyHttpClient = &http.Client{
 			Transport: transport,
 		}
+		openAIConfig.HTTPClient = svc.ProxyHttpClient
+	} else {
+		l.Info("[NewAdminService] no proxy_url, use http.DefaultClient")
+		svc.ProxyHttpClient = http.DefaultClient
 	}
-	oc := openai.NewClientWithConfig(openAIConfig)
-
-	svc := &AdminService{
-		log:          l,
-		OpenAIApiKey: adminConf.ApiKey,
-		OpenAIClient: oc,
-		TelegramBot:  NewTelegramBot(adminConf.TelegramToken, adminConf.ProxyUrl),
-	}
+	svc.OpenAIClient = openai.NewClientWithConfig(openAIConfig)
 
 	// 开始异步处理 telegram command
 	svc.AsyncProcessTelegramCommand()
