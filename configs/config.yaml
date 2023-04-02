@@ -2,20 +2,12 @@ server:
   http:
     addr: 0.0.0.0:6060
     timeout: 300s
-    proxy_url: "http://127.0.0.1:1082"
-    proxy_timeout: 300s
   grpc:
     addr: 0.0.0.0:6061
     timeout: 2s
-data:
-  database:
-    driver: mysql
-    source: root:root@tcp(127.0.0.1:3306)/test
-  redis:
-    addr: 127.0.0.1:6379
-    read_timeout: 0.2s
-    write_timeout: 0.2s
 admin:
-  api_key: ""
+  openai_api_key: ""
+  chatgpt_access_token: ""
+  chatgpt_puid: ""
   proxy_url: ""
   telegram_token: ""

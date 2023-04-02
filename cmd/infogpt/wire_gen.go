@@ -21,7 +21,7 @@ import (
 // Injectors from wire.go:
 
 // wireApp init kratos application.
-func wireApp(confServer *conf.Server, confData *conf.Data, adminConf *conf.Admin, logger log.Logger) (*kratos.App, func(), error) {
+func wireApp(confServer *conf.Server,  adminConf *conf.Admin, logger log.Logger) (*kratos.App, func(), error) {
 	adminService, err := service.NewAdminService(adminConf, logger)
 	if err != nil {
 		return nil, func(){}, err

@@ -7,8 +7,7 @@ import "google/protobuf/duration.proto";
 
 message Bootstrap {
   Server server = 1;
-  Data data = 2;
-  Admin admin = 3;
+  Admin admin = 2;
 }
 
 message Server {
@@ -28,23 +27,10 @@ message Server {
   GRPC grpc = 2;
 }
 
-message Data {
-  message Database {
-    string driver = 1;
-    string source = 2;
-  }
-  message Redis {
-    string network = 1;
-    string addr = 2;
-    google.protobuf.Duration read_timeout = 3;
-    google.protobuf.Duration write_timeout = 4;
-  }
-  Database database = 1;
-  Redis redis = 2;
-}
-
 message Admin {
-  string api_key = 1;
-  string proxy_url = 2;
-  string telegram_token = 3;
+  string openai_api_key = 1;
+  string chatgpt_access_token = 2;
+  string chatgpt_puid = 3;
+  string proxy_url = 4;
+  string telegram_token = 5;
 }
