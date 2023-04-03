@@ -30,7 +30,10 @@ type AdminService struct {
 	OpenAIApiKey string
 	OpenAIClient *openai.Client
 
-	TelegramBot *tgbotapi.BotAPI
+	// telegram bot 相关配置
+	// 根据telegram配置项判断是否开启telegram bot功能，如果不开启，则不会运行telegram bot相关代码
+	enableTelegram bool
+	TelegramBot    *tgbotapi.BotAPI
 }
 
 func NewAdminService(adminConf *conf.Admin, logger log.Logger) (*AdminService, error) {
@@ -39,7 +42,6 @@ func NewAdminService(adminConf *conf.Admin, logger log.Logger) (*AdminService, e
 		log:          l,
 		OpenAIApiKey: adminConf.OpenaiApiKey,
 		AdminConf:    adminConf,
-		TelegramBot:  NewTelegramBot(adminConf.TelegramToken, adminConf.ProxyUrl),
 	}
 
 	// openai client
@@ -47,7 +49,7 @@ func NewAdminService(adminConf *conf.Admin, logger log.Logger) (*AdminService, e
 	if adminConf.ProxyUrl != "" {
 		proxyUrl, err := url.Parse(adminConf.ProxyUrl)
 		if err != nil {
-			log.Error("parse proxy_url %s error: %v", adminConf.ProxyUrl, err)
+			log.Errorf("parse proxy_url %s error: %v", adminConf.ProxyUrl, err)
 			return nil, err
 		}
 		transport := &http.Transport{
@@ -64,7 +66,13 @@ func NewAdminService(adminConf *conf.Admin, logger log.Logger) (*AdminService, e
 	svc.OpenAIClient = openai.NewClientWithConfig(openAIConfig)
 
 	// 开始异步处理 telegram command
-	svc.AsyncProcessTelegramCommand()
+	svc.enableTelegram = (adminConf.TelegramToken != "")
+	if svc.enableTelegram {
+		svc.TelegramBot = NewTelegramBot(adminConf.TelegramToken, adminConf.ProxyUrl)
+		svc.AsyncProcessTelegramCommand()
+	} else {
+		log.Warn("[NewAdminService] not enable telegram bot, skip")
+	}
 
 	return svc, nil
 }

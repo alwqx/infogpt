@@ -1,5 +1,12 @@
 # InfoGPT changelog
 
+### v0.0.6
+
+1. 代理 openaiproxy 接口添加 ratelimit
+2. 提供 hello 接口用于 Gin 测试
+3. 去掉 chatGPTProxy 相关冗余代码
+4. 使用 [golangci-lint](https://github.com/golangci/golangci-lint/) 检查代码
+
 ### v0.0.5
 
 1. ~~支持 ChatGPT、ChatGPT Plus 代理~~，不可控，chatgpt + access_token 容易造成个人的聊天信息泄露，留了 todo，暂未实现

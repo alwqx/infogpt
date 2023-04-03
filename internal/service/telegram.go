@@ -22,7 +22,7 @@ func NewTelegramBot(token string, proxyUrl string) *tgbotapi.BotAPI {
 	if proxyUrl != "" {
 		urlObj, err := url.Parse(proxyUrl)
 		if err != nil {
-			log.Panic("parse proxy_url %s error: %v", proxyUrl, err)
+			log.Panicf("parse proxy_url %s error: %v", proxyUrl, err)
 		}
 
 		transport := &http.Transport{
@@ -92,7 +92,7 @@ func (s *AdminService) syncProcessTelegramCommand() {
 		case "url":
 			rep, err := s.UrlSummary(context.Background(), req)
 			if err != nil {
-				s.log.Error("booksummary of %s error: %v", req.PromptDetail, err)
+				s.log.Errorf("booksummary of %s error: %v", req.PromptDetail, err)
 				msg.Text = err.Error()
 			} else {
 				msg.Text = rep.Summary
@@ -100,7 +100,7 @@ func (s *AdminService) syncProcessTelegramCommand() {
 		case "book":
 			rep, err := s.BookSummary(context.Background(), req)
 			if err != nil {
-				s.log.Error("booksummary of %s error: %v", req.PromptDetail, err)
+				s.log.Errorf("booksummary of %s error: %v", req.PromptDetail, err)
 				msg.Text = err.Error()
 			} else {
 				msg.Text = rep.Summary
@@ -111,7 +111,7 @@ func (s *AdminService) syncProcessTelegramCommand() {
 			}
 			rep, err := s.OpenaiChat(context.Background(), chatRep)
 			if err != nil {
-				s.log.Error("openai chat of %s error: %v", chatRep.Message, err)
+				s.log.Errorf("openai chat of %s error: %v", chatRep.Message, err)
 				msg.Text = err.Error()
 			} else {
 				msg.Text = rep.Message
@@ -121,12 +121,12 @@ func (s *AdminService) syncProcessTelegramCommand() {
 		}
 
 		// 格式化回复信息，添加问题、耗时等
-		costTime := time.Now().Sub(start)
+		costTime := time.Since(start)
 		msg.Text = fmt.Sprintf("消息人: @%s\n消息内容: %s\n耗时: %s\n回复:\n%s",
 			fromUser, commandDetail, costTime.String(), msg.Text)
 		// msg.ReplyToMessageID = update.Message.MessageID
 		if _, err := s.TelegramBot.Send(msg); err != nil {
-			s.log.Error("send telegram msg %v, error: %v", msg, err)
+			s.log.Errorf("send telegram msg %v, error: %v", msg, err)
 		}
 	}
 }
