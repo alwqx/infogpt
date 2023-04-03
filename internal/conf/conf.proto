@@ -33,4 +33,5 @@ message Admin {
   string chatgpt_puid = 3;
   string proxy_url = 4;
   string telegram_token = 5;
+  string gin_ratelimit_config = 6;
 }
