@@ -2,13 +2,11 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"net/url"
 
 	pb "infogpt/api/admin/v1"
 	"infogpt/internal/conf"
-	lib "infogpt/library"
 
 	"github.com/go-kratos/kratos/v2/log"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -32,6 +30,7 @@ type AdminService struct {
 	OpenAIClient *openai.Client
 
 	OfficialAccount *officialaccount.OfficialAccount
+	EnableWeChat    bool
 
 	// telegram bot 相关配置
 	// 根据telegram配置项判断是否开启telegram bot功能，如果不开启，则不会运行telegram bot相关代码
@@ -40,9 +39,6 @@ type AdminService struct {
 }
 
 func NewAdminService(adminConf *conf.Admin, logger log.Logger) (*AdminService, error) {
-	for k, v := range adminConf.OfficialAccount.AutoReplay {
-		fmt.Printf("DEBUG key=%s, v=%s", k, v)
-	}
 	l := log.NewHelper(log.With(logger, "module", "service/admin"))
 	svc := &AdminService{
 		log:          l,
@@ -73,6 +69,7 @@ func NewAdminService(adminConf *conf.Admin, logger log.Logger) (*AdminService, e
 
 	// 公众号
 	svc.OfficialAccount = NewOfficialAccount(adminConf)
+	svc.EnableWeChat = svc.isOfficialAccountEnable(adminConf.Wechat)
 
 	// 开始异步处理 telegram command
 	svc.enableTelegram = (adminConf.TelegramToken != "")
@@ -98,84 +95,4 @@ func (s *AdminService) AppInfo(_ context.Context, req *pb.AppInfoRequest) (*pb.A
 		Version: "v0.0.1",
 	}
 	return resp, nil
-}
-
-func (s *AdminService) OpenaiChat(ctx context.Context, req *pb.OpenaiChatReuqest) (*pb.OpenaiChatReply, error) {
-	chatReq := openai.ChatCompletionRequest{
-		Model: openai.GPT3Dot5Turbo,
-		Messages: []openai.ChatCompletionMessage{
-			{
-				Role:    openai.ChatMessageRoleUser,
-				Content: req.Message,
-			},
-		},
-	}
-	resp, err := s.OpenAIClient.CreateChatCompletion(ctx, chatReq)
-	if err != nil {
-		log.Errorf("chat with openai error: %v", err)
-		return nil, err
-	}
-
-	reply := &pb.OpenaiChatReply{
-		Message: resp.Choices[0].Message.Content,
-	}
-	return reply, nil
-}
-
-// UrlSummary 抓取 url 内容，调用OpenAI的模型生成内容摘要
-func (s *AdminService) UrlSummary(ctx context.Context, req *pb.SummaryReuqest) (*pb.SummaryReply, error) {
-	// 检查url
-	_, err := url.Parse(req.PromptDetail)
-	if err != nil {
-		return nil, err
-	}
-
-	chatCnt := fmt.Sprintf("%s %s", lib.UrlSummaryPromptCN, req.PromptDetail)
-	log.Infof("[AdminService][UrlSummary] prompt is %s", chatCnt)
-	chatReq := openai.ChatCompletionRequest{
-		Model: openai.GPT3Dot5Turbo,
-		Messages: []openai.ChatCompletionMessage{
-			{
-				Role:    openai.ChatMessageRoleUser,
-				Content: chatCnt,
-			},
-		},
-	}
-
-	resp, err := s.OpenAIClient.CreateChatCompletion(ctx, chatReq)
-	if err != nil {
-		log.Errorf("chat with openai error: %v", err)
-		return nil, err
-	}
-	reply := &pb.SummaryReply{
-		Summary: resp.Choices[0].Message.Content,
-	}
-
-	return reply, nil
-}
-
-// BookSummary 根据书名，调用OpenAI的模型生成内容摘要
-func (s *AdminService) BookSummary(ctx context.Context, req *pb.SummaryReuqest) (*pb.SummaryReply, error) {
-	chatCnt := fmt.Sprintf("%s %s", lib.BookSummaryPromptCN, req.PromptDetail)
-	log.Infof("[AdminService][BookSummary] prompt is %s", chatCnt)
-	chatReq := openai.ChatCompletionRequest{
-		Model: openai.GPT3Dot5Turbo,
-		Messages: []openai.ChatCompletionMessage{
-			{
-				Role:    openai.ChatMessageRoleUser,
-				Content: chatCnt,
-			},
-		},
-	}
-
-	resp, err := s.OpenAIClient.CreateChatCompletion(ctx, chatReq)
-	if err != nil {
-		log.Errorf("chat with openai error: %v", err)
-		return nil, err
-	}
-	reply := &pb.SummaryReply{
-		Summary: resp.Choices[0].Message.Content,
-	}
-
-	return reply, nil
 }

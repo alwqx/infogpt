@@ -10,13 +10,14 @@ admin:
   chatgpt_access_token: ""
   chatgpt_puid: ""
   proxy_url: ""
-  telegram_token: ""
   # gin 路由的ratelimit配置，以IP作为key
   # "5-S" 限制 5 req/s 秒
   # "5-M" 限制 5 req/m 分钟
   # "5-H" 限制 5 req/h 小时
   # "5-D" 限制 5 req/d 天
-  gin_ratelimit_config: "20-D"
+  gin_ratelimit: "20-D"
+  telegram_token: ""
+  telegram_ratelimit: "20-D"
   official_account:
     app_id: ""
     app_secret: ""
