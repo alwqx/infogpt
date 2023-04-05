@@ -83,7 +83,7 @@ help:
 .DEFAULT_GOAL := help
 
 dev:build
-	./bin/infogpt -conf ~/.kconfigs/infogpt
+	./bin/infogpt -conf ~/.kconfigs/infogpt_dev
 
 clean-docker:
 	docker stop infogpt

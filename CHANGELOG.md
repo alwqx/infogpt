@@ -1,5 +1,10 @@
 # InfoGPT changelog
 
+### v0.0.7
+
+1. 接入微信公众号聊天功能-比较弱，OpenAI 响应时间超过 5 秒会断开，提示"服务临时不可用"
+2. telegram 回复消息加上 message ID
+
 ### v0.0.6
 
 1. 代理 openaiproxy 接口添加 ratelimit

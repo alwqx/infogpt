@@ -136,12 +136,13 @@ type Admin struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	OpenaiApiKey       string `protobuf:"bytes,1,opt,name=openai_api_key,json=openaiApiKey,proto3" json:"openai_api_key,omitempty"`
-	ChatgptAccessToken string `protobuf:"bytes,2,opt,name=chatgpt_access_token,json=chatgptAccessToken,proto3" json:"chatgpt_access_token,omitempty"`
-	ChatgptPuid        string `protobuf:"bytes,3,opt,name=chatgpt_puid,json=chatgptPuid,proto3" json:"chatgpt_puid,omitempty"`
-	ProxyUrl           string `protobuf:"bytes,4,opt,name=proxy_url,json=proxyUrl,proto3" json:"proxy_url,omitempty"`
-	TelegramToken      string `protobuf:"bytes,5,opt,name=telegram_token,json=telegramToken,proto3" json:"telegram_token,omitempty"`
-	GinRatelimitConfig string `protobuf:"bytes,6,opt,name=gin_ratelimit_config,json=ginRatelimitConfig,proto3" json:"gin_ratelimit_config,omitempty"`
+	OpenaiApiKey       string           `protobuf:"bytes,1,opt,name=openai_api_key,json=openaiApiKey,proto3" json:"openai_api_key,omitempty"`
+	ChatgptAccessToken string           `protobuf:"bytes,2,opt,name=chatgpt_access_token,json=chatgptAccessToken,proto3" json:"chatgpt_access_token,omitempty"`
+	ChatgptPuid        string           `protobuf:"bytes,3,opt,name=chatgpt_puid,json=chatgptPuid,proto3" json:"chatgpt_puid,omitempty"`
+	ProxyUrl           string           `protobuf:"bytes,4,opt,name=proxy_url,json=proxyUrl,proto3" json:"proxy_url,omitempty"`
+	TelegramToken      string           `protobuf:"bytes,5,opt,name=telegram_token,json=telegramToken,proto3" json:"telegram_token,omitempty"`
+	GinRatelimitConfig string           `protobuf:"bytes,6,opt,name=gin_ratelimit_config,json=ginRatelimitConfig,proto3" json:"gin_ratelimit_config,omitempty"`
+	OfficialAccount    *OfficialAccount `protobuf:"bytes,7,opt,name=official_account,json=officialAccount,proto3" json:"official_account,omitempty"`
 }
 
 func (x *Admin) Reset() {
@@ -218,6 +219,92 @@ func (x *Admin) GetGinRatelimitConfig() string {
 	return ""
 }
 
+func (x *Admin) GetOfficialAccount() *OfficialAccount {
+	if x != nil {
+		return x.OfficialAccount
+	}
+	return nil
+}
+
+type OfficialAccount struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	AppId          string            `protobuf:"bytes,1,opt,name=app_id,json=appId,proto3" json:"app_id,omitempty"`
+	AppSecret      string            `protobuf:"bytes,2,opt,name=app_secret,json=appSecret,proto3" json:"app_secret,omitempty"`
+	Token          string            `protobuf:"bytes,3,opt,name=token,proto3" json:"token,omitempty"`
+	EncodingAesKey string            `protobuf:"bytes,4,opt,name=encoding_aes_key,json=encodingAesKey,proto3" json:"encoding_aes_key,omitempty"`
+	AutoReplay     map[string]string `protobuf:"bytes,5,rep,name=auto_replay,json=autoReplay,proto3" json:"auto_replay,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+}
+
+func (x *OfficialAccount) Reset() {
+	*x = OfficialAccount{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_conf_conf_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *OfficialAccount) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OfficialAccount) ProtoMessage() {}
+
+func (x *OfficialAccount) ProtoReflect() protoreflect.Message {
+	mi := &file_conf_conf_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OfficialAccount.ProtoReflect.Descriptor instead.
+func (*OfficialAccount) Descriptor() ([]byte, []int) {
+	return file_conf_conf_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *OfficialAccount) GetAppId() string {
+	if x != nil {
+		return x.AppId
+	}
+	return ""
+}
+
+func (x *OfficialAccount) GetAppSecret() string {
+	if x != nil {
+		return x.AppSecret
+	}
+	return ""
+}
+
+func (x *OfficialAccount) GetToken() string {
+	if x != nil {
+		return x.Token
+	}
+	return ""
+}
+
+func (x *OfficialAccount) GetEncodingAesKey() string {
+	if x != nil {
+		return x.EncodingAesKey
+	}
+	return ""
+}
+
+func (x *OfficialAccount) GetAutoReplay() map[string]string {
+	if x != nil {
+		return x.AutoReplay
+	}
+	return nil
+}
+
 type Server_HTTP struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -233,7 +320,7 @@ type Server_HTTP struct {
 func (x *Server_HTTP) Reset() {
 	*x = Server_HTTP{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_conf_conf_proto_msgTypes[3]
+		mi := &file_conf_conf_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -246,7 +333,7 @@ func (x *Server_HTTP) String() string {
 func (*Server_HTTP) ProtoMessage() {}
 
 func (x *Server_HTTP) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_conf_proto_msgTypes[3]
+	mi := &file_conf_conf_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -310,7 +397,7 @@ type Server_GRPC struct {
 func (x *Server_GRPC) Reset() {
 	*x = Server_GRPC{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_conf_conf_proto_msgTypes[4]
+		mi := &file_conf_conf_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -323,7 +410,7 @@ func (x *Server_GRPC) String() string {
 func (*Server_GRPC) ProtoMessage() {}
 
 func (x *Server_GRPC) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_conf_proto_msgTypes[4]
+	mi := &file_conf_conf_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -398,7 +485,7 @@ var file_conf_conf_proto_rawDesc = []byte{
 	0x64, 0x64, 0x72, 0x12, 0x33, 0x0a, 0x07, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x18, 0x03,
 	0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72,
 	0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x44, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52,
-	0x07, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x22, 0xf8, 0x01, 0x0a, 0x05, 0x41, 0x64, 0x6d,
+	0x07, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x22, 0xc0, 0x02, 0x0a, 0x05, 0x41, 0x64, 0x6d,
 	0x69, 0x6e, 0x12, 0x24, 0x0a, 0x0e, 0x6f, 0x70, 0x65, 0x6e, 0x61, 0x69, 0x5f, 0x61, 0x70, 0x69,
 	0x5f, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x6f, 0x70, 0x65, 0x6e,
 	0x61, 0x69, 0x41, 0x70, 0x69, 0x4b, 0x65, 0x79, 0x12, 0x30, 0x0a, 0x14, 0x63, 0x68, 0x61, 0x74,
@@ -414,9 +501,31 @@ var file_conf_conf_proto_rawDesc = []byte{
 	0x6e, 0x12, 0x30, 0x0a, 0x14, 0x67, 0x69, 0x6e, 0x5f, 0x72, 0x61, 0x74, 0x65, 0x6c, 0x69, 0x6d,
 	0x69, 0x74, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52,
 	0x12, 0x67, 0x69, 0x6e, 0x52, 0x61, 0x74, 0x65, 0x6c, 0x69, 0x6d, 0x69, 0x74, 0x43, 0x6f, 0x6e,
-	0x66, 0x69, 0x67, 0x42, 0x1c, 0x5a, 0x1a, 0x69, 0x6e, 0x66, 0x6f, 0x67, 0x70, 0x74, 0x2f, 0x69,
-	0x6e, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x2f, 0x63, 0x6f, 0x6e, 0x66, 0x3b, 0x63, 0x6f, 0x6e,
-	0x66, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x66, 0x69, 0x67, 0x12, 0x46, 0x0a, 0x10, 0x6f, 0x66, 0x66, 0x69, 0x63, 0x69, 0x61, 0x6c, 0x5f,
+	0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x18, 0x07, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1b, 0x2e,
+	0x6b, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x4f, 0x66, 0x66, 0x69, 0x63,
+	0x69, 0x61, 0x6c, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x52, 0x0f, 0x6f, 0x66, 0x66, 0x69,
+	0x63, 0x69, 0x61, 0x6c, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x22, 0x94, 0x02, 0x0a, 0x0f,
+	0x4f, 0x66, 0x66, 0x69, 0x63, 0x69, 0x61, 0x6c, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x12,
+	0x15, 0x0a, 0x06, 0x61, 0x70, 0x70, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x05, 0x61, 0x70, 0x70, 0x49, 0x64, 0x12, 0x1d, 0x0a, 0x0a, 0x61, 0x70, 0x70, 0x5f, 0x73, 0x65,
+	0x63, 0x72, 0x65, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x61, 0x70, 0x70, 0x53,
+	0x65, 0x63, 0x72, 0x65, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x18, 0x03,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x12, 0x28, 0x0a, 0x10, 0x65,
+	0x6e, 0x63, 0x6f, 0x64, 0x69, 0x6e, 0x67, 0x5f, 0x61, 0x65, 0x73, 0x5f, 0x6b, 0x65, 0x79, 0x18,
+	0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0e, 0x65, 0x6e, 0x63, 0x6f, 0x64, 0x69, 0x6e, 0x67, 0x41,
+	0x65, 0x73, 0x4b, 0x65, 0x79, 0x12, 0x4c, 0x0a, 0x0b, 0x61, 0x75, 0x74, 0x6f, 0x5f, 0x72, 0x65,
+	0x70, 0x6c, 0x61, 0x79, 0x18, 0x05, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x2b, 0x2e, 0x6b, 0x72, 0x61,
+	0x74, 0x6f, 0x73, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x4f, 0x66, 0x66, 0x69, 0x63, 0x69, 0x61, 0x6c,
+	0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x2e, 0x41, 0x75, 0x74, 0x6f, 0x52, 0x65, 0x70, 0x6c,
+	0x61, 0x79, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x0a, 0x61, 0x75, 0x74, 0x6f, 0x52, 0x65, 0x70,
+	0x6c, 0x61, 0x79, 0x1a, 0x3d, 0x0a, 0x0f, 0x41, 0x75, 0x74, 0x6f, 0x52, 0x65, 0x70, 0x6c, 0x61,
+	0x79, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75,
+	0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02,
+	0x38, 0x01, 0x42, 0x1c, 0x5a, 0x1a, 0x69, 0x6e, 0x66, 0x6f, 0x67, 0x70, 0x74, 0x2f, 0x69, 0x6e,
+	0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x2f, 0x63, 0x6f, 0x6e, 0x66, 0x3b, 0x63, 0x6f, 0x6e, 0x66,
+	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -431,28 +540,32 @@ func file_conf_conf_proto_rawDescGZIP() []byte {
 	return file_conf_conf_proto_rawDescData
 }
 
-var file_conf_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_conf_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_conf_conf_proto_goTypes = []interface{}{
 	(*Bootstrap)(nil),           // 0: kratos.api.Bootstrap
 	(*Server)(nil),              // 1: kratos.api.Server
 	(*Admin)(nil),               // 2: kratos.api.Admin
-	(*Server_HTTP)(nil),         // 3: kratos.api.Server.HTTP
-	(*Server_GRPC)(nil),         // 4: kratos.api.Server.GRPC
-	(*durationpb.Duration)(nil), // 5: google.protobuf.Duration
+	(*OfficialAccount)(nil),     // 3: kratos.api.OfficialAccount
+	(*Server_HTTP)(nil),         // 4: kratos.api.Server.HTTP
+	(*Server_GRPC)(nil),         // 5: kratos.api.Server.GRPC
+	nil,                         // 6: kratos.api.OfficialAccount.AutoReplayEntry
+	(*durationpb.Duration)(nil), // 7: google.protobuf.Duration
 }
 var file_conf_conf_proto_depIdxs = []int32{
 	1, // 0: kratos.api.Bootstrap.server:type_name -> kratos.api.Server
 	2, // 1: kratos.api.Bootstrap.admin:type_name -> kratos.api.Admin
-	3, // 2: kratos.api.Server.http:type_name -> kratos.api.Server.HTTP
-	4, // 3: kratos.api.Server.grpc:type_name -> kratos.api.Server.GRPC
-	5, // 4: kratos.api.Server.HTTP.timeout:type_name -> google.protobuf.Duration
-	5, // 5: kratos.api.Server.HTTP.proxy_timeout:type_name -> google.protobuf.Duration
-	5, // 6: kratos.api.Server.GRPC.timeout:type_name -> google.protobuf.Duration
-	7, // [7:7] is the sub-list for method output_type
-	7, // [7:7] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	4, // 2: kratos.api.Server.http:type_name -> kratos.api.Server.HTTP
+	5, // 3: kratos.api.Server.grpc:type_name -> kratos.api.Server.GRPC
+	3, // 4: kratos.api.Admin.official_account:type_name -> kratos.api.OfficialAccount
+	6, // 5: kratos.api.OfficialAccount.auto_replay:type_name -> kratos.api.OfficialAccount.AutoReplayEntry
+	7, // 6: kratos.api.Server.HTTP.timeout:type_name -> google.protobuf.Duration
+	7, // 7: kratos.api.Server.HTTP.proxy_timeout:type_name -> google.protobuf.Duration
+	7, // 8: kratos.api.Server.GRPC.timeout:type_name -> google.protobuf.Duration
+	9, // [9:9] is the sub-list for method output_type
+	9, // [9:9] is the sub-list for method input_type
+	9, // [9:9] is the sub-list for extension type_name
+	9, // [9:9] is the sub-list for extension extendee
+	0, // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_conf_conf_proto_init() }
@@ -498,7 +611,7 @@ func file_conf_conf_proto_init() {
 			}
 		}
 		file_conf_conf_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Server_HTTP); i {
+			switch v := v.(*OfficialAccount); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -510,6 +623,18 @@ func file_conf_conf_proto_init() {
 			}
 		}
 		file_conf_conf_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Server_HTTP); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_conf_conf_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Server_GRPC); i {
 			case 0:
 				return &v.state
@@ -528,7 +653,7 @@ func file_conf_conf_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_conf_conf_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
