@@ -15,7 +15,6 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	khttp "github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/go-kratos/swagger-api/openapiv2"
-	"github.com/silenceper/wechat/v2/officialaccount/message"
 	"github.com/ulule/limiter/v3"
 	mgin "github.com/ulule/limiter/v3/drivers/middleware/gin"
 	"github.com/ulule/limiter/v3/drivers/store/memory"
@@ -52,7 +51,7 @@ func NewHTTPServer(c *conf.Server, admin *service.AdminService, logger log.Logge
 	pb.RegisterAdminHTTPServer(httpSrv, admin)
 
 	// 使用ratelimit
-	rate, err := limiter.NewRateFromFormatted(adminSvc.AdminConf.GinRatelimitConfig)
+	rate, err := limiter.NewRateFromFormatted(adminSvc.AdminConf.GinRatelimit)
 	if err != nil {
 		panic(err)
 	}
@@ -68,10 +67,16 @@ func NewHTTPServer(c *conf.Server, admin *service.AdminService, logger log.Logge
 	// 设置路由
 	ginRouter.GET("/hello", ginHello)
 	ginRouter.Any("/openaiproxy/*path", openaiProxy)
-	ginRouter.Any("/officialaccount", processOfficialAccountMessage)
 	httpSrv.HandlePrefix("/hello", ginRouter)
 	httpSrv.HandlePrefix("/openaiproxy", ginRouter)
-	httpSrv.HandlePrefix("/officialaccount", ginRouter)
+
+	// 判断是否处理微信公众号消息
+	if adminSvc.EnableWeChat {
+		ginRouter.Any("/officialaccount", processOfficialAccountMessage)
+		httpSrv.HandlePrefix("/officialaccount", ginRouter)
+	} else {
+		log.Warnf("not enable wechat, skip")
+	}
 
 	return httpSrv
 }
@@ -129,42 +134,7 @@ func openaiProxy(ctx *gin.Context) {
 	})
 }
 
-// ServeOfficialAccountMessage 处理微信公众号消息
+// processOfficialAccountMessage 处理微信公众号消息
 func processOfficialAccountMessage(ctx *gin.Context) {
-	server := adminSvc.OfficialAccount.GetServer(ctx.Request, ctx.Writer)
-	server.SetMessageHandler(func(msg *message.MixMessage) *message.Reply {
-		// 先判断是否是关键字自动回复
-		respText := new(message.Text)
-		if replyInfo, ok := adminSvc.AdminConf.OfficialAccount.AutoReplay[msg.Content]; ok {
-			respText.Content = message.CDATA(replyInfo)
-		} else {
-			chatReq := &pb.OpenaiChatReuqest{
-				Message: msg.Content,
-			}
-			// 如果消息过于复杂，OpenAI处理时间超过5秒，微信会断开连接，并且重试3次
-			// 这里要做好检查，如果超过5秒，就返回success或者提示信息
-			// 然后把问题缓存起来，新起一个逻辑，去请求答案
-			// 详情见: https://developers.weixin.qq.com/doc/offiaccount/Message_Management/Passive_user_reply_message.html
-			chatResp, err := adminSvc.OpenaiChat(ctx, chatReq)
-			if err != nil {
-				log.Errorf("[processOfficialAccountMessage] serveOfficialWechat error: %v", err)
-				respText.Content = message.CDATA(err.Error())
-			} else {
-				respText.Content = message.CDATA(chatResp.Message)
-			}
-		}
-
-		return &message.Reply{MsgType: message.MsgTypeText, MsgData: respText}
-	})
-
-	//处理消息接收以及回复
-	err := server.Serve()
-	if err != nil {
-		log.Errorf("[processOfficialAccountMessage] serve.Serve error: %v", err)
-		return
-	}
-	err = server.Send()
-	if err != nil {
-		log.Errorf("[processOfficialAccountMessage] server.Send error: %v", err)
-	}
+	adminSvc.ProcessOfficialAccountMessage(ctx)
 }

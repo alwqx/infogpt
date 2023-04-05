@@ -32,12 +32,13 @@ message Admin {
   string chatgpt_access_token = 2;
   string chatgpt_puid = 3;
   string proxy_url = 4;
-  string telegram_token = 5;
-  string gin_ratelimit_config = 6;
-  OfficialAccount official_account = 7;
+  string gin_ratelimit = 5;
+  string telegram_token = 6;
+  string telegram_ratelimit = 7;
+  WeChat wechat = 8;
 }
 
-message OfficialAccount {
+message WeChat {
   string app_id = 1;
   string app_secret = 2;
   string token = 3;
