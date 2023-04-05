@@ -14,6 +14,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/google/wire"
 	openai "github.com/sashabaranov/go-openai"
+	"github.com/silenceper/wechat/v2/officialaccount"
 )
 
 // ProviderSet is service providers.
@@ -30,6 +31,8 @@ type AdminService struct {
 	OpenAIApiKey string
 	OpenAIClient *openai.Client
 
+	OfficialAccount *officialaccount.OfficialAccount
+
 	// telegram bot 相关配置
 	// 根据telegram配置项判断是否开启telegram bot功能，如果不开启，则不会运行telegram bot相关代码
 	enableTelegram bool
@@ -37,6 +40,9 @@ type AdminService struct {
 }
 
 func NewAdminService(adminConf *conf.Admin, logger log.Logger) (*AdminService, error) {
+	for k, v := range adminConf.OfficialAccount.AutoReplay {
+		fmt.Printf("DEBUG key=%s, v=%s", k, v)
+	}
 	l := log.NewHelper(log.With(logger, "module", "service/admin"))
 	svc := &AdminService{
 		log:          l,
@@ -64,6 +70,9 @@ func NewAdminService(adminConf *conf.Admin, logger log.Logger) (*AdminService, e
 		svc.ProxyHttpClient = http.DefaultClient
 	}
 	svc.OpenAIClient = openai.NewClientWithConfig(openAIConfig)
+
+	// 公众号
+	svc.OfficialAccount = NewOfficialAccount(adminConf)
 
 	// 开始异步处理 telegram command
 	svc.enableTelegram = (adminConf.TelegramToken != "")

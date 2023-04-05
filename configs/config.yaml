@@ -17,3 +17,10 @@ admin:
   # "5-H" 限制 5 req/h 小时
   # "5-D" 限制 5 req/d 天
   gin_ratelimit_config: "20-D"
+  official_account:
+    app_id: ""
+    app_secret: ""
+    token: ""
+    encoding_aes_key: ""
+    auto_replay:
+      "001": "infogpt infogpt1"

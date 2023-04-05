@@ -124,7 +124,7 @@ func (s *AdminService) syncProcessTelegramCommand() {
 		costTime := time.Since(start)
 		msg.Text = fmt.Sprintf("消息人: @%s\n消息内容: %s\n耗时: %s\n回复:\n%s",
 			fromUser, commandDetail, costTime.String(), msg.Text)
-		// msg.ReplyToMessageID = update.Message.MessageID
+		msg.ReplyToMessageID = update.Message.MessageID
 		if _, err := s.TelegramBot.Send(msg); err != nil {
 			s.log.Errorf("send telegram msg %v, error: %v", msg, err)
 		}

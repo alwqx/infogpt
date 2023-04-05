@@ -34,4 +34,13 @@ message Admin {
   string proxy_url = 4;
   string telegram_token = 5;
   string gin_ratelimit_config = 6;
+  OfficialAccount official_account = 7;
+}
+
+message OfficialAccount {
+  string app_id = 1;
+  string app_secret = 2;
+  string token = 3;
+  string encoding_aes_key = 4;
+  map <string, string> auto_replay = 5;
 }

@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 
@@ -16,6 +15,7 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	khttp "github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/go-kratos/swagger-api/openapiv2"
+	"github.com/silenceper/wechat/v2/officialaccount/message"
 	"github.com/ulule/limiter/v3"
 	mgin "github.com/ulule/limiter/v3/drivers/middleware/gin"
 	"github.com/ulule/limiter/v3/drivers/store/memory"
@@ -64,21 +64,19 @@ func NewHTTPServer(c *conf.Server, admin *service.AdminService, logger log.Logge
 	ginRouter := gin.Default()
 	ginRouter.Use(kgin.Middlewares(recovery.Recovery(), customMiddleware))
 	ginRouter.Use(rateMiddleware)
-	ginRouter.Any("/openaiproxy/*path", openaiProxy)
-	httpSrv.HandlePrefix("/openaiproxy", ginRouter)
-	ginRouter.GET("/hello", ginHello)
-	httpSrv.HandlePrefix("/hello", ginRouter)
-	// ChatGPT 代理相对麻烦，而且很多第三方客户端不支持，暂时 TODO
-	// ginRouter.Any("/chatgptproxy/*path", chatGPTProxy)
-	// httpSrv.HandlePrefix("/chatgptproxy", ginRouter)
 
-	// syncChatGPTSession()
+	// 设置路由
+	ginRouter.GET("/hello", ginHello)
+	ginRouter.Any("/openaiproxy/*path", openaiProxy)
+	ginRouter.Any("/officialaccount", processOfficialAccountMessage)
+	httpSrv.HandlePrefix("/hello", ginRouter)
+	httpSrv.HandlePrefix("/openaiproxy", ginRouter)
+	httpSrv.HandlePrefix("/officialaccount", ginRouter)
 
 	return httpSrv
 }
 
 // openaiProxy 将请求转发到openai api 服务器地址
-// refer https://github.com/acheong08/ChatGPT-Proxy-V4/blob/main/main.go
 func openaiProxy(ctx *gin.Context) {
 	var (
 		url           string
@@ -93,7 +91,6 @@ func openaiProxy(ctx *gin.Context) {
 	// newPath := strings.Replace(originPath, "/", "", 1)
 	newPath := originPath
 	url = lib.OpenAIBaseAPI + newPath
-	fmt.Printf("DEBUG chatGPTProxy originPath=%s, newPath=%s\n, url=%s", originPath, newPath, url)
 	requestMethod = ctx.Request.Method
 
 	request, err = http.NewRequest(requestMethod, url, ctx.Request.Body)
@@ -132,9 +129,42 @@ func openaiProxy(ctx *gin.Context) {
 	})
 }
 
-// ginHello 用于测试 gin.Router 相关功能
-func ginHello(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "hello",
+// ServeOfficialAccountMessage 处理微信公众号消息
+func processOfficialAccountMessage(ctx *gin.Context) {
+	server := adminSvc.OfficialAccount.GetServer(ctx.Request, ctx.Writer)
+	server.SetMessageHandler(func(msg *message.MixMessage) *message.Reply {
+		// 先判断是否是关键字自动回复
+		respText := new(message.Text)
+		if replyInfo, ok := adminSvc.AdminConf.OfficialAccount.AutoReplay[msg.Content]; ok {
+			respText.Content = message.CDATA(replyInfo)
+		} else {
+			chatReq := &pb.OpenaiChatReuqest{
+				Message: msg.Content,
+			}
+			// 如果消息过于复杂，OpenAI处理时间超过5秒，微信会断开连接，并且重试3次
+			// 这里要做好检查，如果超过5秒，就返回success或者提示信息
+			// 然后把问题缓存起来，新起一个逻辑，去请求答案
+			// 详情见: https://developers.weixin.qq.com/doc/offiaccount/Message_Management/Passive_user_reply_message.html
+			chatResp, err := adminSvc.OpenaiChat(ctx, chatReq)
+			if err != nil {
+				log.Errorf("[processOfficialAccountMessage] serveOfficialWechat error: %v", err)
+				respText.Content = message.CDATA(err.Error())
+			} else {
+				respText.Content = message.CDATA(chatResp.Message)
+			}
+		}
+
+		return &message.Reply{MsgType: message.MsgTypeText, MsgData: respText}
 	})
+
+	//处理消息接收以及回复
+	err := server.Serve()
+	if err != nil {
+		log.Errorf("[processOfficialAccountMessage] serve.Serve error: %v", err)
+		return
+	}
+	err = server.Send()
+	if err != nil {
+		log.Errorf("[processOfficialAccountMessage] server.Send error: %v", err)
+	}
 }
