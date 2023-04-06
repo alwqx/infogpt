@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/url"
+	"strings"
 )
 
 func PrintJson(title string, v interface{}) {
@@ -19,4 +20,10 @@ func PrintJson(title string, v interface{}) {
 func CheckUrl(urlStr string) error {
 	_, err := url.Parse(urlStr)
 	return err
+}
+
+// CompressMessage 压缩消息
+// 当前主要是去掉首尾空格
+func CompressMessage(msg string) string {
+	return strings.TrimSpace(msg)
 }
