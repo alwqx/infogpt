@@ -1,5 +1,9 @@
 # InfoGPT changelog
 
+### v0.0.9
+
+1. telegram bot 支持按照用户 id ratelimit
+
 ### v0.0.8
 
 1. 变更配置名

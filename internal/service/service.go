@@ -34,8 +34,9 @@ type AdminService struct {
 
 	// telegram bot 相关配置
 	// 根据telegram配置项判断是否开启telegram bot功能，如果不开启，则不会运行telegram bot相关代码
-	enableTelegram bool
-	TelegramBot    *tgbotapi.BotAPI
+	enableTelegram  bool
+	TelegramBot     *tgbotapi.BotAPI
+	TelegramLimiter *TelegramLimiter
 }
 
 func NewAdminService(adminConf *conf.Admin, logger log.Logger) (*AdminService, error) {
@@ -72,9 +73,10 @@ func NewAdminService(adminConf *conf.Admin, logger log.Logger) (*AdminService, e
 	svc.EnableWeChat = svc.isOfficialAccountEnable(adminConf.Wechat)
 
 	// 开始异步处理 telegram command
-	svc.enableTelegram = (adminConf.TelegramToken != "")
+	svc.enableTelegram = (adminConf.Telegram.Token != "")
 	if svc.enableTelegram {
-		svc.TelegramBot = NewTelegramBot(adminConf.TelegramToken, adminConf.ProxyUrl)
+		svc.TelegramBot = NewTelegramBot(adminConf.Telegram.Token, adminConf.ProxyUrl)
+		svc.TelegramLimiter = NewTelegramLimiter(adminConf.Telegram)
 		svc.AsyncProcessTelegramCommand()
 	} else {
 		log.Warn("[NewAdminService] not enable telegram bot, skip")

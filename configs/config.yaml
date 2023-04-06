@@ -7,8 +7,6 @@ server:
     timeout: 2s
 admin:
   openai_api_key: ""
-  chatgpt_access_token: ""
-  chatgpt_puid: ""
   proxy_url: ""
   # gin 路由的ratelimit配置，以IP作为key
   # "5-S" 限制 5 req/s 秒
@@ -16,8 +14,12 @@ admin:
   # "5-H" 限制 5 req/h 小时
   # "5-D" 限制 5 req/d 天
   gin_ratelimit: "20-D"
-  telegram_token: ""
-  telegram_ratelimit: "20-D"
+  telegram:
+    token: ""
+    # 机器人的请求限制，原则上应该比 user_ratelimit 大，为空则不进行限制
+    ratelimit: ""
+    # 每个用户的请求限制，为空则不进行限制
+    user_ratelimit: "20-D"
   official_account:
     app_id: ""
     app_secret: ""

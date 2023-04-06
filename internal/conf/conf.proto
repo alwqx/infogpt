@@ -29,13 +29,17 @@ message Server {
 
 message Admin {
   string openai_api_key = 1;
-  string chatgpt_access_token = 2;
-  string chatgpt_puid = 3;
-  string proxy_url = 4;
-  string gin_ratelimit = 5;
-  string telegram_token = 6;
-  string telegram_ratelimit = 7;
-  WeChat wechat = 8;
+  string proxy_url = 2;
+  string gin_ratelimit = 3;
+  Telegram telegram = 4;
+  WeChat wechat = 5;
+}
+
+message Telegram {
+  string token = 1;
+  string ratelimit = 2;
+  string user_ratelimit = 3;
+  repeated string exclude_keys = 4;
 }
 
 message WeChat {
