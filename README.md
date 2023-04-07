@@ -1,57 +1,25 @@
-# Kratos Project Template For InfoGPT
+# InfoGPT - Made ChatGPT/LLM easy
 
-## 快速部署
+## 对于个人用户
 
-参考 [deploy](docs/deploy.md)
+1. OpenAI API 代理
+2. ~~共享 API Key~~
 
-## Install Kratos
+## Telegram Bot
 
-```
-go install github.com/go-kratos/kratos/cmd/kratos/v2@latest
-```
+## WeChat 公众号
 
-## Create a service
+## 部署
 
-```
-# Create a template project
-kratos new server
+得益于 Golang 语言的静态编译，部署运行只需 3 步：
 
-cd server
-# Add a proto template
-kratos proto add api/server/server.proto
-# Generate the proto code
-kratos proto client api/server/server.proto
-# Generate the source code of service by proto file
-kratos proto server api/server/server.proto -t internal/service
+1. 编译/下载得到二进制文件
+2. 得到正确的配置
+3. 配置域名-可选择
 
-go generate ./...
-go build -o ./bin/ ./...
-./bin/server -conf ./configs
-```
+详情参考文档 [deploy](docs/deploy.md)
 
-## Generate other auxiliary files by Makefile
-
-```
-# Download and update dependencies
-make init
-# Generate API files (include: pb.go, http, grpc, validate, swagger) by proto file
-make api
-# Generate all files
-make all
-```
-
-## Automated Initialization (wire)
-
-```
-# install wire
-go get github.com/google/wire/cmd/wire
-
-# generate wire
-cd cmd/server
-wire
-```
-
-## Docker
+## Docker 快速部署
 
 ```bash
 # build
@@ -63,14 +31,17 @@ docker run -d --name infogpt --rm -p 6060:6060 -p 6061:6061 -v </path/to/your/co
 
 ## TODOs
 
-核心功能：
-
-- [ ] 生成网页文章摘要
-- [ ] 生成文件内容摘要
-- [ ] 通过声音和练习口语
-
-第三方机器人：
-
-- [ ] Telegram
+- [x] 支持 OpenAI Proxy
+- [x] REST/gRPC 接口
+  - [x] 聊天
+  - [x] 生成网页文章摘要
+  - [x] 生成书籍内容摘要
+- [x] Telegram
+  - [x] /chat /url /book 三个命令
+  - [x] 使用频率限制
+- [ ] WeChat 公众号有限支持
+  - [ ] 使用频率限制
+  - [ ] 超时缓存问答
+- [ ] 支持 ChatGPT Proxy
 - [ ] Slack
-- [ ] WeChat
+- [ ] 生成文件内容摘要
