@@ -20,7 +20,7 @@ admin:
     ratelimit: ""
     # 每个用户的请求限制，为空则不进行限制
     user_ratelimit: "20-D"
-  official_account:
+  wechat:
     app_id: ""
     app_secret: ""
     token: ""
