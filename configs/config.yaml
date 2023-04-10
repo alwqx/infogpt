@@ -20,10 +20,16 @@ admin:
     ratelimit: ""
     # 每个用户的请求限制，为空则不进行限制
     user_ratelimit: "20-D"
+    exclude_keys: ["foo", "bar"]
   wechat:
     app_id: ""
     app_secret: ""
     token: ""
     encoding_aes_key: ""
+    # 机器人的请求限制，原则上应该比 user_ratelimit 大，为空则不进行限制
+    ratelimit: ""
+    # 每个用户的请求限制，为空则不进行限制
+    user_ratelimit: "20-D"
+    exclude_keys: ["foo", "bar"]
     auto_replay:
       "001": "infogpt infogpt1"

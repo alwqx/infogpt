@@ -47,5 +47,8 @@ message WeChat {
   string app_secret = 2;
   string token = 3;
   string encoding_aes_key = 4;
-  map <string, string> auto_replay = 5;
+  string ratelimit = 5;
+  string user_ratelimit = 6;
+  repeated string exclude_keys = 7;
+  map <string, string> auto_replay = 8;
 }

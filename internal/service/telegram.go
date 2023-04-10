@@ -202,7 +202,7 @@ func (s *AdminService) syncProcessTelegramCommand() {
 
 		// 开始判断是否超过请求限制
 		if s.TelegramLimiter.ReachedLimit(fromUser) {
-			msg.Text = "超过系统限制，请稍后再尝试"
+			msg.Text = "您今天超过使用次数限制，请明天再来"
 			s.telegramReplayMessage(&msg)
 			continue
 		}
