@@ -11,11 +11,14 @@ import (
 	lib "infogpt/library"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-kratos/kratos/v2/log"
 	wechat "github.com/silenceper/wechat/v2"
 	"github.com/silenceper/wechat/v2/cache"
 	"github.com/silenceper/wechat/v2/officialaccount"
 	offConfig "github.com/silenceper/wechat/v2/officialaccount/config"
 	"github.com/silenceper/wechat/v2/officialaccount/message"
+	"github.com/ulule/limiter/v3"
+	"github.com/ulule/limiter/v3/drivers/store/memory"
 )
 
 func NewOfficialAccount(adminConf *conf.Admin) *officialaccount.OfficialAccount {
@@ -74,6 +77,13 @@ func (s *AdminService) ProcessOfficialAccountMessage(ctx *gin.Context) {
 		// if ok && reply.Status == model.WechatMessageStatusDone {
 		if ok {
 			respText.Content = message.CDATA(s.truncateWechatMessage(reply.Replay))
+			return &message.Reply{MsgType: message.MsgTypeText, MsgData: respText}
+		}
+
+		// 判断是否超过ratelimit
+		fromUser := string(msg.FromUserName)
+		if s.WechatLimiter.ReachedLimit(fromUser) {
+			respText.Content = message.CDATA("您今天超过使用次数限制，请明天再来")
 			return &message.Reply{MsgType: message.MsgTypeText, MsgData: respText}
 		}
 
@@ -178,4 +188,105 @@ func (s *AdminService) truncateWechatMessage(input string) string {
 
 	res := rs[:lib.WeChatReplayMessageLen]
 	return string(res)
+}
+
+// WechatLimiter 控制 telegram rate 的limiter
+type WechatLimiter struct {
+	ExcludeKeyMap map[string]struct{}
+	Limiter       *limiter.Limiter
+	UserLimiter   *limiter.Limiter
+}
+
+func NewWechatLimiter(wechatConf *conf.WeChat) *WechatLimiter {
+	tl := new(WechatLimiter)
+	var store limiter.Store
+
+	// 判断是否开启限流并赋值
+	if wechatConf.Ratelimit != "" {
+		store = memory.NewStore()
+		rate, err := limiter.NewRateFromFormatted(wechatConf.Ratelimit)
+		if err != nil {
+			panic(err)
+		}
+		tl.Limiter = limiter.New(store, rate)
+	}
+
+	if wechatConf.UserRatelimit != "" {
+		if store == nil {
+			store = memory.NewStore()
+		}
+		userRate, err := limiter.NewRateFromFormatted(wechatConf.UserRatelimit)
+		if err != nil {
+			panic(err)
+		}
+		tl.UserLimiter = limiter.New(store, userRate)
+	}
+
+	tl.ExcludeKeyMap = make(map[string]struct{}, len(wechatConf.ExcludeKeys))
+	for _, k := range wechatConf.ExcludeKeys {
+		tl.ExcludeKeyMap[k] = struct{}{}
+	}
+
+	return tl
+}
+
+const (
+	// telegram bot 系统请求限制key
+	WechatGeneralLimiterKey = "wechat_bot_general_request_limit"
+	// telegram bot 用户请求限制key前缀，防止userID和系统key冲突
+	WechatUserLimiterPrefix = "wechat_user_limiter_prefix"
+)
+
+func (tLimiter *WechatLimiter) ReachedLimit(userID string) bool {
+	// 判断 userID 是否在 exclude key中
+	if _, ok := tLimiter.ExcludeKeyMap[userID]; ok {
+		return false
+	}
+
+	// 1. 判断用户请求是否超限
+	userRes := tLimiter.userReachedLimit(userID)
+	// 2. 判断系统请求是否超限
+	// 步骤1 和 2都要运行一次，只有运行了，系统底层才会统计使用次数
+	teleRes := tLimiter.wechatReachedLimit()
+
+	// 综合返回结果
+	return userRes || teleRes
+}
+
+// userReachedLimit 判断 userID 是否达到上线
+// true 说明达到上限，需要进行限制
+// false 说明没有达到，直接放行
+func (tLimiter *WechatLimiter) userReachedLimit(userID string) bool {
+	// 如果限流器为nil，说明没有配置限流，默认不限流
+	if tLimiter.UserLimiter == nil {
+		return false
+	}
+	if _, ok := tLimiter.ExcludeKeyMap[userID]; ok {
+		return false
+	}
+
+	newKey := fmt.Sprintf("%s_%s", WechatUserLimiterPrefix, userID)
+	userCtx, err := tLimiter.UserLimiter.Get(context.TODO(), newKey)
+	if err != nil {
+		log.Errorf("UserLimiter Get key=%s error: %v", newKey, err)
+		return true
+	}
+	return userCtx.Reached
+}
+
+// wechatReachedLimit 判断telegram总请求数是否达到上线
+// true 说明达到上限，需要进行限制
+// false 说明没有达到，直接放行
+func (tLimiter *WechatLimiter) wechatReachedLimit() bool {
+	// 如果限流器为nil，说明没有配置限流，默认不限流
+	if tLimiter.Limiter == nil {
+		return false
+	}
+
+	generalCtx, err := tLimiter.Limiter.Get(context.TODO(), WechatGeneralLimiterKey)
+	if err != nil {
+		log.Errorf("Limiter Get key=%s error: %v", WechatGeneralLimiterKey, err)
+		return true
+	}
+	return generalCtx.Reached
 }

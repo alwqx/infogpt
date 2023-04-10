@@ -34,6 +34,7 @@ type AdminService struct {
 	OfficialAccount    *officialaccount.OfficialAccount
 	EnableWeChat       bool
 	WeChatMessageCache *gocache.Cache
+	WechatLimiter      *WechatLimiter
 
 	// telegram bot 相关配置
 	// 根据telegram配置项判断是否开启telegram bot功能，如果不开启，则不会运行telegram bot相关代码
@@ -75,6 +76,7 @@ func NewAdminService(adminConf *conf.Admin, logger log.Logger) (*AdminService, e
 	// 公众号
 	svc.OfficialAccount = NewOfficialAccount(adminConf)
 	svc.EnableWeChat = svc.isOfficialAccountEnable(adminConf.Wechat)
+	svc.WechatLimiter = NewWechatLimiter(adminConf.Wechat)
 
 	// 开始异步处理 telegram command
 	svc.enableTelegram = (adminConf.Telegram.Token != "")
