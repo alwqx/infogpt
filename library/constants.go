@@ -5,4 +5,5 @@ const (
 	OpenAIBaseAPI                          = "https://api.openai.com"
 	HTTPClientProxyTimeoutS                = 15
 	WeChatOfficialAccountEncodingAesKeyLen = 43
+	WeChatReplayMessageLen                 = 600
 )

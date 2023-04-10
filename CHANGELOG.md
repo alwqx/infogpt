@@ -1,5 +1,11 @@
 # InfoGPT changelog
 
+### v0.0.10
+
+1. 没有开启企业认证的微信公众号，聊天消息超时缓存
+   说明：根据微信文档 [被动回复用户消息](https://developers.weixin.qq.com/doc/offiaccount/Message_Management/Passive_user_reply_message.html)，第三方服务要在 5 秒内响应用户的消息，而聊天模型的响应时间**普便**超过 5 秒，因为为了`提供较好的体验`，超过 5 秒没有响应，我们会把用户的聊天缓存，等有结果了再返回
+2. 返回消息过长，自动分割
+
 ### v0.0.9
 
 1. telegram bot 支持按照用户 id ratelimit
