@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/url"
+	"time"
 
 	pb "infogpt/api/admin/v1"
 	"infogpt/internal/conf"
@@ -11,6 +12,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/google/wire"
+	gocache "github.com/patrickmn/go-cache"
 	openai "github.com/sashabaranov/go-openai"
 	"github.com/silenceper/wechat/v2/officialaccount"
 )
@@ -29,8 +31,9 @@ type AdminService struct {
 	OpenAIApiKey string
 	OpenAIClient *openai.Client
 
-	OfficialAccount *officialaccount.OfficialAccount
-	EnableWeChat    bool
+	OfficialAccount    *officialaccount.OfficialAccount
+	EnableWeChat       bool
+	WeChatMessageCache *gocache.Cache
 
 	// telegram bot 相关配置
 	// 根据telegram配置项判断是否开启telegram bot功能，如果不开启，则不会运行telegram bot相关代码
@@ -42,9 +45,10 @@ type AdminService struct {
 func NewAdminService(adminConf *conf.Admin, logger log.Logger) (*AdminService, error) {
 	l := log.NewHelper(log.With(logger, "module", "service/admin"))
 	svc := &AdminService{
-		log:          l,
-		OpenAIApiKey: adminConf.OpenaiApiKey,
-		AdminConf:    adminConf,
+		log:                l,
+		OpenAIApiKey:       adminConf.OpenaiApiKey,
+		AdminConf:          adminConf,
+		WeChatMessageCache: gocache.New(2*time.Hour, time.Hour), // 过期时间2小时，检查周期1小时
 	}
 
 	// openai client

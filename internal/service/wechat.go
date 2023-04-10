@@ -1,8 +1,13 @@
 package service
 
 import (
+	"context"
+	"fmt"
+	"time"
+
 	pb "infogpt/api/admin/v1"
 	"infogpt/internal/conf"
+	"infogpt/internal/model"
 	lib "infogpt/library"
 
 	"github.com/gin-gonic/gin"
@@ -60,23 +65,54 @@ func (s *AdminService) ProcessOfficialAccountMessage(ctx *gin.Context) {
 		respText := new(message.Text)
 		if replyInfo, ok := s.AdminConf.Wechat.AutoReplay[msg.Content]; ok {
 			respText.Content = message.CDATA(replyInfo)
-		} else {
-			chatReq := &pb.OpenaiChatReuqest{
-				Message: msg.Content,
-			}
-			// 如果消息过于复杂，OpenAI处理时间超过5秒，微信会断开连接，并且重试3次
-			// 这里要做好检查，如果超过5秒，就返回success或者提示信息
-			// 然后把问题缓存起来，新起一个逻辑，去请求答案
-			// 详情见: https://developers.weixin.qq.com/doc/offiaccount/Message_Management/Passive_user_reply_message.html
-			chatResp, err := s.OpenaiChat(ctx, chatReq)
-			if err != nil {
-				s.log.Errorf("[processOfficialAccountMessage] serveOfficialWechat error: %v", err)
-				respText.Content = message.CDATA(err.Error())
-			} else {
-				respText.Content = message.CDATA(chatResp.Message)
-			}
+			return &message.Reply{MsgType: message.MsgTypeText, MsgData: respText}
 		}
 
+		// 判断缓存中是否存在消息
+		msgKey := lib.CompressMessage(msg.Content)
+		reply, ok := s.getWechatMessageFromCache(msgKey)
+		// if ok && reply.Status == model.WechatMessageStatusDone {
+		if ok {
+			respText.Content = message.CDATA(s.truncateWechatMessage(reply.Replay))
+			return &message.Reply{MsgType: message.MsgTypeText, MsgData: respText}
+		}
+
+		// 不存在，则开启goroutine请求reply
+		respCh := make(chan string)
+		go s.getAndCacheWechatMessageFromOpenAI(msgKey)
+		go func() {
+			// 这个地方不能无限重试，需要做判断
+			sleepTime := 900 * time.Millisecond
+			cnt := 1
+			timeout := 5 * time.Minute
+			for {
+				item, ok := s.getWechatMessageFromCache(msgKey)
+				if !ok || item.Status != model.WechatMessageStatusDone {
+					s.log.Warnf("[ProcessOfficialAccountMessage] not get replay of %s, sleep", msgKey)
+					time.Sleep(sleepTime)
+					cnt++
+					if time.Duration(cnt)*sleepTime > timeout {
+						respCh <- "请求超时"
+						break
+					}
+					continue
+				}
+				reply := fmt.Sprintf("%s\n\n耗时: %s",
+					item.Replay, item.ReplayTime.Sub(item.ChatTime).String())
+				respCh <- reply
+				s.log.Warnf("[ProcessOfficialAccountMessage] get replay of %s, sleep", msgKey)
+				break
+			}
+		}()
+		select {
+		case reply := <-respCh:
+			respText.Content = message.CDATA(s.truncateWechatMessage(reply))
+		case <-time.After(4500 * time.Millisecond):
+			// 超时，返回默认信息提示用户
+			respText.Content = message.CDATA("您的消息耗时较长,已经缓存后台处理,请等待30秒左右输入相同的问题")
+		}
+
+		// 如果返回消息过长，超过微信限制，会被拒绝发送，这里加上判断，如果过长，则分割发送
 		return &message.Reply{MsgType: message.MsgTypeText, MsgData: respText}
 	})
 
@@ -90,4 +126,56 @@ func (s *AdminService) ProcessOfficialAccountMessage(ctx *gin.Context) {
 	if err != nil {
 		s.log.Errorf("[processOfficialAccountMessage] server.Send error: %v", err)
 	}
+}
+
+// getWechatMessageFromCache
+func (s *AdminService) getWechatMessageFromCache(key string) (*model.WeChatMessageCacheItem, bool) {
+	item, ok := s.WeChatMessageCache.Get(key)
+	if !ok {
+		return nil, false
+	}
+
+	res, ok := item.(*model.WeChatMessageCacheItem)
+	if !ok {
+		return nil, false
+	}
+	return res, true
+}
+
+// getAndCacheWechatMessageFromOpenAI
+func (s *AdminService) getAndCacheWechatMessageFromOpenAI(msg string) {
+	item := new(model.WeChatMessageCacheItem)
+	item.Message = msg
+	item.ChatTime = time.Now()
+	s.log.Warnf("[getAndCacheWechatMessageFromOpenAI] finish replay %s, start=%s\n", msg, item.ChatTime.String())
+	chatReq := &pb.OpenaiChatReuqest{
+		Message: msg,
+	}
+	item.Status = model.WechatMessageStatusRequest
+	s.WeChatMessageCache.SetDefault(item.Message, item)
+
+	chatResp, err := s.OpenaiChat(context.Background(), chatReq)
+	if err != nil {
+		s.log.Errorf("[getAndCacheWechatMessageFromOpenAI] OpenaiChat error: %v", err)
+		item.Replay = err.Error()
+		item.Status = model.WechatMessageStatusError
+	} else {
+		item.Replay = chatResp.Message
+		item.Status = model.WechatMessageStatusDone
+	}
+	item.ReplayTime = time.Now()
+	s.WeChatMessageCache.SetDefault(item.Message, item)
+	s.log.Warnf("[getAndCacheWechatMessageFromOpenAI] finish replay %s, start=%s, end=%s\n",
+		msg, item.ChatTime.String(), item.ReplayTime.String())
+}
+
+// truncateWechatMessage 微信返回消息有长度限制，超过则截断
+func (s *AdminService) truncateWechatMessage(input string) string {
+	rs := []rune(input)
+	if len(rs) < lib.WeChatReplayMessageLen {
+		return input
+	}
+
+	res := rs[:lib.WeChatReplayMessageLen]
+	return string(res)
 }

@@ -82,6 +82,7 @@ help:
 
 .DEFAULT_GOAL := help
 
+.PHONY: dev
 dev:build
 	./bin/infogpt -conf ~/.kconfigs/infogpt_dev
 

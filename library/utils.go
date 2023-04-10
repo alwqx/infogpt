@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/url"
 	"strings"
+	"time"
 )
 
 func PrintJson(title string, v interface{}) {
@@ -26,4 +27,10 @@ func CheckUrl(urlStr string) error {
 // 当前主要是去掉首尾空格
 func CompressMessage(msg string) string {
 	return strings.TrimSpace(msg)
+}
+
+const StandardTimeLayout = "2006-01-02 15:04:05"
+
+func StandardTimeString(t time.Time) string {
+	return t.Format(StandardTimeLayout)
 }
