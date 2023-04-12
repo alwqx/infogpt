@@ -37,3 +37,4 @@ bin/
 .idea/
 *.swp
 infogpt.code-workspace
+coverage.data

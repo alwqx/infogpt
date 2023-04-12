@@ -1,5 +1,11 @@
 # InfoGPT changelog
 
+### v0.0.12
+
+1. 更新 Readme，新增 telegram 和 openai proxy gif
+2. 新增 github go release action
+3. 新增 docker image infogpt:v0.0.12
+
 ### v0.0.11
 
 1. 公众号 ratelimit
