@@ -1,5 +1,9 @@
 # InfoGPT changelog
 
+### v0.0.13
+
+1. 修复 release action 配置错误
+
 ### v0.0.12
 
 1. 更新 Readme，新增 telegram 和 openai proxy gif
