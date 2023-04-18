@@ -1,5 +1,10 @@
 # InfoGPT changelog
 
+### v0.0.14
+
+1. 更新文档，部署信息更详细
+2. 调整 release action，把配置目录`configs`整体打包，而非打包单个文件
+
 ### v0.0.13
 
 1. 修复 release action 配置错误
@@ -13,6 +18,7 @@
 ### v0.0.11
 
 1. 公众号 ratelimit
+   oai.infogpt.cc/openaiproxy
 
 ### v0.0.10
 
