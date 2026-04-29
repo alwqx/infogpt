@@ -1,5 +1,9 @@
 # InfoGPT changelog
 
+### v0.0.15
+
+1. 升级 actions 版本
+
 ### v0.0.14
 
 1. 更新文档，部署信息更详细
